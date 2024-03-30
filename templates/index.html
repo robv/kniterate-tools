@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Knitting Machine Roller Values</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            padding: 20px;
+        }
+
+        #calculator {
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 20px;
+            background: lightblue;
+        }
+
+        input[type="number"],
+        input[type="range"],
+        #decay_rate_display,
+        textarea {
+            display: block;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input[type="number"] {
+            max-width: 100px;
+        }
+
+        #decay_rate_display {
+            display: inline-block;
+            width: auto;
+            margin-left: 10px;
+        }
+
+        #graph {
+            margin-top: 20px;
+        }
+
+        textarea {
+            height: 150px; /* Adjust height as needed */
+            width: 100%; /* Adjust width to fill container */
+        }
+    </style>
+</head>
+<body>
+    <div id="calculator">
+    Stitch Size: <input type="number" id="stitch" value="6"><br>
+    Speed: <input type="number" id="speed" value="300"><br>
+    Initial Roller Value: <input type="number" id="initial_roller_value" value="450"><br>
+    End Roller Value: <input type="number" id="end_roller_value" value="20"><br>
+    Number of Bind Off Stitches: <input type="number" id="number_of_stitches" value="252"><br>
+    Decay Rate: <input type="range" id="decay_rate" min="0,01" max="0.99" step="0.01" value="0.02"> <span id="decay_rate_display">0.9</span><br><br>
+    <div id="graph"></div>
+
+    <script>
+        $(document).ready(function() {
+            function updateGraph() {
+                const initialRollerValue = $('#initial_roller_value').val();
+                const numberOfStitches = $('#number_of_stitches').val();
+                const decayRate = $('#decay_rate').val();
+                const endRollerValue = $('#end_roller_value').val();
+
+                $('#decay_rate_display').text(decayRate);
+
+                $.ajax({
+                    url: '/calculate',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        initial_roller_value: initialRollerValue,
+                        number_of_stitches: numberOfStitches,
+                        decay_rate: decayRate,
+                        end_roller_value: endRollerValue
+                    }),
+                    success: function(data) {
+                        const trace = {
+                            y: data,
+                            type: 'scatter'
+                        };
+
+                        const layout = {
+                            title: 'Roller Values',
+                            xaxis: {
+                                title: 'Stitch Number'
+                            },
+                            yaxis: {
+                                title: 'Roller Value'
+                            }
+                        };
+
+                        Plotly.newPlot('graph', [trace], layout);
+
+                        // Update the text area with rounded roller values
+                        const roundedValues = data.map(value => Math.round(value));
+                        $('#roller_values_text').val('stitch ' + $('#stitch').val() + ' speed ' + $('#speed').val() + ' roller ' + roundedValues.join(' '));
+                    }
+                });
+            }
+
+            // Update graph whenever the inputs change
+            $('#initial_roller_value').on('input', updateGraph);
+            $('#number_of_stitches').on('input', updateGraph);
+            $('#decay_rate').on('input', updateGraph);
+            $('#end_roller_value').on('input', updateGraph);
+
+            // Initial graph update
+            updateGraph();
+        });
+    </script>
+    <p>Copy this to the bind of layer value field:</p>
+    <textarea id="roller_values_text" rows="4" cols="50" readonly></textarea>
+    </div>
+
+</body>
+</html>
