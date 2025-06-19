@@ -349,6 +349,10 @@ def list_shapes(dxf_path: str, wanted_layers=None, unit_scale: float = 1.0):
     for name, polys in grouped.items():
         merged = unary_union(polys) if len(polys) > 1 else polys[0]
         result.append((name, merged))
+    # Scale DXF shapes to millimeters based on unit_scale
+    if unit_scale != 1.0:
+        from shapely.affinity import scale as _scale_geom
+        result = [(name, _scale_geom(poly, xfact=unit_scale, yfact=unit_scale, origin=(0, 0))) for name, poly in result]
     return result
 
 def polygon_to_svg(poly, path: str, stroke='none', fill='black', stroke_width=0):
