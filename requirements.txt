@@ -27,3 +27,8 @@ wcwidth==0.1.9
 Werkzeug==3.0.1
 zipp==3.17.0
 gunicorn==23.0.0
+ezdxf
+shapely
+python-dotenv
+boto3
+svgpathtools

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Conversion Results</title>
+</head>
+<body>
+    <h1>Conversion Results</h1>
+    {% if links %}
+        <ul>
+        {% for link in links %}
+            {# Swap R2 public domain for custom domain #}
+            {% set newlink = link | replace('https://fbc9b6d71f07350da2377931fcdee071.r2.cloudflarestorage.com/kniterate/', 'https://kniterate.lunote.co/') %}
+            <li><a href="{{ newlink }}">{{ newlink }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No shapes found in the DXF file.</p>
+    {% endif %}
+    <p><a href="/convert">Convert another file</a></p>
+</body>
+</html> 

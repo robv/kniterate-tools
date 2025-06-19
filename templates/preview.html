@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Shape to Convert</title>
+</head>
+<body>
+    <h1>Select Shape to Convert</h1>
+    <ul>
+    {% for shape in shapes %}
+        <li>
+            <h2>{{ shape.name }}</h2>
+            <img id="shape-img-{{ shape.idx }}"
+                 data-session-id="{{ session_id }}"
+                 data-unit-scale="{{ unit_scale }}"
+                 data-piece-index="{{ shape.idx }}"
+                 src="{{ url_for('preview_shape', session_id=session_id, piece_index=shape.idx, rotation=0, mirror='none', unit_scale=unit_scale) }}"
+                 alt="{{ shape.name }}"
+                 style="max-width:300px;">
+            <p>Dimensions: {{ shape.width|round(2) }} {{ units }} × {{ shape.height|round(2) }} {{ units }}</p>
+            <form action="{{ url_for('convert_shape') }}" method="post">
+                <input type="hidden" name="session_id" value="{{ session_id }}">
+                <input type="hidden" name="piece_index" value="{{ shape.idx }}">
+                <input type="hidden" name="sts10" value="{{ sts10 }}">
+                <input type="hidden" name="rows10" value="{{ rows10 }}">
+                <input type="hidden" name="unit_scale" value="{{ unit_scale }}">
+                <div>
+                    <label for="rotate-{{ shape.idx }}">Rotate:</label>
+                    <select name="rotation" id="rotate-{{ shape.idx }}" data-piece-index="{{ shape.idx }}" onchange="updateTransform(this)">
+                        <option value="0">0°</option>
+                        <option value="90">90°</option>
+                        <option value="180">180°</option>
+                        <option value="270">270°</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="mirror-{{ shape.idx }}">Mirror:</label>
+                    <select name="mirror" id="mirror-{{ shape.idx }}" data-piece-index="{{ shape.idx }}" onchange="updateTransform(this)">
+                        <option value="none">None</option>
+                        <option value="left">Mirror Left Edge</option>
+                        <option value="right">Mirror Right Edge</option>
+                    </select>
+                </div>
+                <button type="submit">Convert "{{ shape.name }}" to TXT</button>
+            </form>
+        </li>
+    {% endfor %}
+    </ul>
+    <p><a href="{{ url_for('convert_route') }}">Upload a different file</a></p>
+    <script>
+    const previewBaseUrl = "{{ url_for('preview_shape') }}";
+    function updateTransform(selectElem) {
+        const idx = selectElem.dataset.pieceIndex;
+        const img = document.getElementById(`shape-img-${idx}`);
+        const sessionId = img.dataset.sessionId;
+        const unitScale = img.dataset.unitScale;
+        const rotation = document.getElementById(`rotate-${idx}`).value;
+        const mirror = document.getElementById(`mirror-${idx}`).value;
+        const params = new URLSearchParams({
+            session_id: sessionId,
+            piece_index: idx,
+            rotation: rotation,
+            mirror: mirror,
+            unit_scale: unitScale,
+            json: 1
+        });
+        const url = `${previewBaseUrl}?${params.toString()}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // Update SVG image
+                const svgData = data.svg;
+                // Use URI encoding to embed SVG
+                img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgData);
+                // Update dimensions text
+                const dimP = img.nextElementSibling;
+                if (dimP && dimP.tagName === 'P') {
+                    dimP.textContent = `Dimensions: ${data.width.toFixed(2)} ${data.units} × ${data.height.toFixed(2)} ${data.units}`;
+                }
+            });
+    }
+    </script>
+</body>
+</html> 

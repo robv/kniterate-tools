@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DXF to DAK TXT Converter</title>
+</head>
+<body>
+    <h1>DXF to DAK TXT Converter</h1>
+    <form action="/convert" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="dxf_file">File (DXF or SVG):</label>
+            <input type="file" id="dxf_file" name="dxf_file" accept=".dxf,.svg" required>
+        </div>
+        <div>
+            <label for="sts10">Stitches per 10 cm:</label>
+            <input type="number" step="0.01" id="sts10" name="sts10" required>
+        </div>
+        <div>
+            <label for="rows10">Rows per 10 cm:</label>
+            <input type="number" step="0.01" id="rows10" name="rows10" required>
+        </div>
+        <div>
+            <label for="units">Units:</label>
+            <select id="units" name="units">
+                <option value="mm">Millimeters</option>
+                <option value="inch" selected>Inches</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit">Convert</button>
+        </div>
+    </form>
+</body>
+</html> 

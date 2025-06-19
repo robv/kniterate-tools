@@ -1,6 +1,36 @@
-
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 __pycache__/*
+# Environment variables
+.env
+
+# Uploaded files
+uploads/
+
+# IDE/editor settings
+.idea/
+.vscode/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python compiled files
+*.pyc
+*$py.class
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Testing and coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# macOS
+.DS_Store
