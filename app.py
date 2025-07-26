@@ -223,6 +223,8 @@ def convert_shape():
         mirror = request.form.get('mirror', 'none')
         garter_mode = bool(request.form.get('garter'))
         add_transfers = bool(request.form.get('transfers'))
+        full_cardigan = bool(request.form.get('cardigan'))
+        half_cardigan = bool(request.form.get('half_cardigan'))
     except (KeyError, ValueError):
         return "Invalid parameters", 400
     session_folder = UPLOAD_FOLDER / session_id
@@ -244,7 +246,8 @@ def convert_shape():
                           wanted_layers=None, unit_scale=geom_scale,
                           piece_index=piece_index,
                           rotation=rotation, mirror=mirror,
-                          garter_mode=garter_mode, add_transfers=add_transfers)
+                          garter_mode=garter_mode, add_transfers=add_transfers,
+                          full_cardigan=full_cardigan, half_cardigan=half_cardigan)
     if not created:
         return "Shape not found", 404
     # Upload converted files to R2 and build public URLs

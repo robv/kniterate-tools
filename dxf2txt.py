@@ -218,6 +218,7 @@ def row_stitch_counts(poly: Polygon, sts10: float, rows10: float):
 def _write_shape(path: Path, piece_name: str, filename_root: str,
                  sts_row: List[int], sts10: float, rows10: float,
                  garter_mode: bool = False, add_transfers: bool = False,
+                 full_cardigan: bool = False, half_cardigan: bool = False,
                  yarn: int = 4):
     rows_orig = len(sts_row)
     # sts_row now contains per-row runs of (indent,count)
@@ -227,8 +228,11 @@ def _write_shape(path: Path, piece_name: str, filename_root: str,
         for indent, count in runs:
             max_sts = max(max_sts, indent + count)
 
-    # In true garter mode with transfers we output 3 lines per design row.
-    rows_out = rows_orig * 3 if garter_mode and add_transfers else rows_orig
+    # Update row count based on pattern requiring extra rows
+    if garter_mode and add_transfers:
+        rows_out = rows_orig * 3
+    else:
+        rows_out = rows_orig
     # Helper to render a row of yarn runs
     def render_row(runs):
         line = [' '] * max_sts
@@ -256,10 +260,10 @@ def _write_shape(path: Path, piece_name: str, filename_root: str,
         w("MAIN TENSIONS\n")
         w(f"Stitches per 10 cm =  {int(sts10)}\nRows per 10 cm =  {int(rows10)}\n")
         w("YARNS\n")
-        if not garter_mode:
+        if not (garter_mode or full_cardigan or half_cardigan):
             for runs in sts_row:
                 w(render_row(runs) + "\n")
-        else:  # garter_mode enabled
+        elif garter_mode:
             # Updated: YARNS lines must mirror STITCH SYMBOLS exactly.
             # Knit pass: yarn digit where stitch exists, space elsewhere.
             # Transfer passes: '0' in every column (DAK expects carrier-less row).
@@ -273,12 +277,19 @@ def _write_shape(path: Path, piece_name: str, filename_root: str,
                 if add_transfers:
                     w('0' * max_sts + "\n")  # transfer pass A
                     w('0' * max_sts + "\n")  # transfer pass B
+        elif full_cardigan or half_cardigan:
+            # YARNS for cardigan modes: mirror stitch presence with yarn digit.
+            yarn_char = str(yarn) if isinstance(yarn, int) else yarn
+            for runs in sts_row:
+                mask = render_symbols(runs)
+                line = ''.join(yarn_char if ch != ' ' else ' ' for ch in mask)
+                w(line + "\n")
         w("\nYARN PALETTE\nYarn L : 112,180,249 light blue\n")
         w("\nSTITCH SYMBOLS\n")
-        if not garter_mode:
+        if not (garter_mode or full_cardigan or half_cardigan):
             for runs in sts_row:
                 w(render_symbols(runs) + "\n")
-        else:
+        elif garter_mode:
             ARROW_UP = '↑'
             ARROW_DOWN = '↓'
             KNIT_F = '-'
@@ -310,6 +321,39 @@ def _write_shape(path: Path, piece_name: str, filename_root: str,
                         arrow_sym if (n % 2 == 1 and knit_line[n] != MISS) else MISS
                         for n in range(width))
                     w(pass_b + "\n")
+        elif full_cardigan or half_cardigan:
+            # Symbol definitions
+            MISS = ' '
+            for row_idx, runs in enumerate(sts_row):
+                # Build presence mask first
+                present = [False] * max_sts
+                for indent, count in runs:
+                    for pos in range(indent, indent + count):
+                        if 0 <= pos < max_sts:
+                            present[pos] = True
+
+                symbols = []
+                if full_cardigan:
+                    if row_idx % 2 == 0:
+                        # Row A pattern: - ^ - ^ ...
+                        for col in range(max_sts):
+                            symbols.append('-' if col % 2 == 0 else '^')
+                    else:
+                        # Row B pattern: V . V . ...
+                        for col in range(max_sts):
+                            symbols.append('V' if col % 2 == 0 else '.')
+                else:  # half_cardigan
+                    if row_idx % 2 == 0:
+                        # tuck row: - ^ - ^ ...
+                        for col in range(max_sts):
+                            symbols.append('-' if col % 2 == 0 else '^')
+                    else:
+                        # plain knit both beds
+                        symbols = ['X'] * max_sts
+
+                # Replace symbol with space where no stitch on this row
+                symbol_line = ''.join(sym if present[i] else MISS for i, sym in enumerate(symbols))
+                w(symbol_line + "\n")
         w("\nSTITCH PATTERN NOTES\nSHAPE FILE NOTES\nEND\n")
 
 # ---------------------------------------------------------------------------
@@ -430,7 +474,8 @@ def polygon_to_svg(poly, path: str, stroke='none', fill='black', stroke_width=0)
 def convert_one(dxf_path: str, out_dir: str, sts10: float, rows10: float,
                 wanted_layers=None, unit_scale: float=1.0,
                 piece_index: int=1, rotation: float=0.0, mirror: str="none",
-                garter_mode: bool=False, add_transfers: bool=False):
+                garter_mode: bool=False, add_transfers: bool=False,
+                full_cardigan: bool=False, half_cardigan: bool=False):
     """Convert a single named shape (by index) from DXF to DAK txt."""
     shapes = list_shapes(dxf_path, wanted_layers, unit_scale)
     if not shapes or piece_index < 1 or piece_index > len(shapes):
@@ -465,7 +510,8 @@ def convert_one(dxf_path: str, out_dir: str, sts10: float, rows10: float,
     txt_path = Path(out_dir) / f"{piece_index}_{fname}.txt"
     counts = list(row_stitch_counts(poly, sts10, rows10))
     _write_shape(txt_path, name, fname, counts, sts10, rows10,
-                 garter_mode=garter_mode, add_transfers=add_transfers)
+                 garter_mode=garter_mode, add_transfers=add_transfers,
+                 full_cardigan=full_cardigan, half_cardigan=half_cardigan)
     return [str(txt_path)]
 
 # ---------------------------------------------------------------------------
