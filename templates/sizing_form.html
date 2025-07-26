@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sizing Form</title>
-    <script>
+{% extends 'base.html' %}
+{% block title %}Gauge Calculator{% endblock %}
+{% block content %}
+<script>
         function submitForm(event) {
             event.preventDefault(); // Prevent the default form submission
 
@@ -38,10 +35,8 @@
             .catch(error => console.error('Error:', error));
         }
     </script>
-</head>
-<body>
-    <h1>Sizing Form</h1>
-    <form onsubmit="submitForm(event)">
+<h1>Sizing Form</h1>
+<form onsubmit="submitForm(event)" class="card">
         <label for="original_width_px">Original Width (px):</label>
         <input type="number" id="original_width_px" name="original_width_px" step="0.01" required><br>
 
@@ -55,8 +50,7 @@
         <input type="number" id="final_height_in" name="final_height_in" step="0.01" required><br>
 
         <button type="submit">Calculate</button>
-    </form>
+</form>
 
-    <div id="results"></div>
-</body>
-</html> 
+<div id="results"></div>
+{% endblock %} 

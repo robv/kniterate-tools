@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Select Shape to Convert</title>
-</head>
-<body>
-    <h1>Select Shape to Convert</h1>
-    <ul>
+{% extends 'base.html' %}
+{% block title %}Select Shape{% endblock %}
+{% block content %}
+<h1>Select Shape to Convert</h1>
+<ul style="list-style:none;padding:0;">
     {% for shape in shapes %}
         <li>
             <h2>{{ shape.name }}</h2>
@@ -69,9 +65,9 @@
             </form>
         </li>
     {% endfor %}
-    </ul>
-    <p><a href="{{ url_for('convert_route') }}">Upload a different file</a></p>
-    <script>
+</ul>
+<p><a href="{{ url_for('convert_route') }}">Upload a different file</a></p>
+<script>
     const previewBaseUrl = "{{ url_for('preview_shape') }}";
     function updateTransform(selectElem) {
         const idx = selectElem.dataset.pieceIndex;
@@ -103,6 +99,5 @@
                 }
             });
     }
-    </script>
-</body>
-</html> 
+</script>
+{% endblock %} 

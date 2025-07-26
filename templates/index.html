@@ -1,54 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Knitting Machine Roller Values</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <style>
-        body {
-            padding: 20px;
-        }
-
-        #calculator {
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 20px;
-            background: lightblue;
-        }
-
-        input[type="number"],
-        input[type="range"],
-        #decay_rate_display,
-        textarea {
-            display: block;
-            margin: 5px 0;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        input[type="number"] {
-            max-width: 100px;
-        }
-
-        #decay_rate_display {
-            display: inline-block;
-            width: auto;
-            margin-left: 10px;
-        }
-
-        #graph {
-            margin-top: 20px;
-        }
-
-        textarea {
-            height: 150px; /* Adjust height as needed */
-            width: 100%; /* Adjust width to fill container */
-        }
-    </style>
-</head>
-<body>
-    <div id="calculator">
+{% extends 'base.html' %}
+{% block title %}Roller Value Calculator{% endblock %}
+{% block content %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<div id="calculator" class="card">
     Stitch Size: <input type="number" id="stitch" value="6"><br>
     Speed: <input type="number" id="speed" value="300"><br>
     Initial Roller Value: <input type="number" id="initial_roller_value" value="450"><br>
@@ -114,7 +69,5 @@
     </script>
     <p>Copy this to the bind of layer value field:</p>
     <textarea id="roller_values_text" rows="4" cols="50" readonly></textarea>
-    </div>
-
-</body>
-</html>
+</div>
+{% endblock %}

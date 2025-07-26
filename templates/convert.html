@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>DXF to DAK TXT Converter</title>
-</head>
-<body>
-    <h1>DXF to DAK TXT Converter</h1>
-    <form action="/convert" method="post" enctype="multipart/form-data">
+{% extends 'base.html' %}
+{% block title %}DXF to DAK Converter{% endblock %}
+{% block content %}
+<h1>Shape File Maker</h1>
+<form action="/convert" method="post" enctype="multipart/form-data" class="card">
         <div>
             <label for="dxf_file">File (DXF or SVG):</label>
             <input type="file" id="dxf_file" name="dxf_file" accept=".dxf,.svg" required>
@@ -30,5 +26,4 @@
             <button type="submit">Convert</button>
         </div>
     </form>
-</body>
-</html> 
+{% endblock %} 

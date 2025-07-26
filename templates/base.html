@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Knit Tools{% endblock %}</title>
+    <link rel="stylesheet" href="https://use.typekit.net/zrh1dhy.css">
+    <style>
+        body { margin:0; font-family: "aglet-mono-variable", sans-serif; background:#f5f7fa; font-size: 20px; }
+        header { background:#ed76ff; color:#000; padding:12px 24px; }
+        header nav a { color:#000; margin-right:36px; }
+        header nav a:hover { text-decoration:none; }
+        main { max-width:1000px; margin:20px auto; padding:0 16px; }
+        .card { background:#fff; padding:20px 40px 40px 40px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+        input, select, textarea { font-size: 20px; font-family: "aglet-mono-variable", sans-serif; padding:6px 8px; border:1px solid #ccc; border-radius:4px; margin:4px 0; width:100%; box-sizing:border-box; }
+        button { font-family: "aglet-mono-variable", sans-serif; font-weight: 300; padding:18px 40px; margin-top: 40px; font-size: 2em; background:#ed76ff; color:#000; border:none; border-radius:50px; cursor:pointer; }
+        button:hover { background:#ed76ff; }
+        label { display:block; padding-top:20px; }
+    </style>
+</head>
+<body>
+<header>
+    <nav>
+        <a href="{{ url_for('home') }}">Roller Calculator</a>
+        <a href="{{ url_for('convert_route') }}">Shape Maker</a>
+        <a href="{{ url_for('sizing') }}">Gauge Calculator</a>
+    </nav>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+</body>
+</html> 

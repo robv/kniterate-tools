@@ -1,11 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Conversion Results</title>
-</head>
-<body>
-    <h1>Conversion Results</h1>
+{% extends 'base.html' %}
+{% block title %}Conversion Results{% endblock %}
+{% block content %}
+<h1>Conversion Results</h1>
     {% if links %}
         <ul>
         {% for link in links %}
@@ -17,6 +13,5 @@
     {% else %}
         <p>No shapes found in the DXF file.</p>
     {% endif %}
-    <p><a href="/convert">Convert another file</a></p>
-</body>
-</html> 
+<p><a href="/convert">Convert another file</a></p>
+{% endblock %} 
