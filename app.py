@@ -221,6 +221,8 @@ def convert_shape():
         piece_index = int(request.form['piece_index'])
         rotation = float(request.form.get('rotation', 0))
         mirror = request.form.get('mirror', 'none')
+        garter_mode = bool(request.form.get('garter'))
+        add_transfers = bool(request.form.get('transfers'))
     except (KeyError, ValueError):
         return "Invalid parameters", 400
     session_folder = UPLOAD_FOLDER / session_id
@@ -238,10 +240,11 @@ def convert_shape():
         else:
             return "Input file not found", 404
     # Convert shape using the common converter
-        created = convert_one(input_path, str(session_folder), sts10, rows10,
+    created = convert_one(input_path, str(session_folder), sts10, rows10,
                           wanted_layers=None, unit_scale=geom_scale,
-                              piece_index=piece_index,
-                              rotation=rotation, mirror=mirror)
+                          piece_index=piece_index,
+                          rotation=rotation, mirror=mirror,
+                          garter_mode=garter_mode, add_transfers=add_transfers)
     if not created:
         return "Shape not found", 404
     # Upload converted files to R2 and build public URLs

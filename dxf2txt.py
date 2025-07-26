@@ -214,15 +214,21 @@ def row_stitch_counts(poly: Polygon, sts10: float, rows10: float):
                     runs.append((indent, count))
         yield runs
 
+# Added garter_mode parameter to support alternate stitch symbols every other row
 def _write_shape(path: Path, piece_name: str, filename_root: str,
-                 sts_row: List[int], sts10: float, rows10: float, yarn=4):
-    rows = len(sts_row)
+                 sts_row: List[int], sts10: float, rows10: float,
+                 garter_mode: bool = False, add_transfers: bool = False,
+                 yarn: int = 4):
+    rows_orig = len(sts_row)
     # sts_row now contains per-row runs of (indent,count)
     # Determine max stitches width across all runs
     max_sts = 0
     for runs in sts_row:
         for indent, count in runs:
             max_sts = max(max_sts, indent + count)
+
+    # In true garter mode with transfers we output 3 lines per design row.
+    rows_out = rows_orig * 3 if garter_mode and add_transfers else rows_orig
     # Helper to render a row of yarn runs
     def render_row(runs):
         line = [' '] * max_sts
@@ -244,18 +250,66 @@ def _write_shape(path: Path, piece_name: str, filename_root: str,
         w = f.write
         w("FILE FORMAT : DAK\nFILE FORMAT VERSION : 0.43\nGARMENT PIECE\n")
         w(f"Shape filename : {filename_root}\nPiece : {piece_name}\n")
-        w(f"Stitches : {max_sts}\nRows : {rows}\n")
+        w(f"Stitches : {max_sts}\nRows : {rows_out}\n")
         w("RIB DIMENSIONS\nStitches : 0\nRows : 0\n")
         w("RIB TENSIONS\nStitches per 10 cm =  0\nRows per 10 cm =  0\n")
         w("MAIN TENSIONS\n")
         w(f"Stitches per 10 cm =  {int(sts10)}\nRows per 10 cm =  {int(rows10)}\n")
         w("YARNS\n")
-        for runs in sts_row:
-            w(render_row(runs) + "\n")
+        if not garter_mode:
+            for runs in sts_row:
+                w(render_row(runs) + "\n")
+        else:  # garter_mode enabled
+            # Updated: YARNS lines must mirror STITCH SYMBOLS exactly.
+            # Knit pass: yarn digit where stitch exists, space elsewhere.
+            # Transfer passes: '0' in every column (DAK expects carrier-less row).
+            yarn_char = str(yarn) if isinstance(yarn, int) else yarn
+            for runs in sts_row:
+                # Build stitch presence mask for the design row
+                mask = render_symbols(runs)  # '-' where stitch, ' ' otherwise
+                knit_yarn_line = ''.join(
+                    yarn_char if ch != ' ' else ' ' for ch in mask)
+                w(knit_yarn_line + "\n")
+                if add_transfers:
+                    w('0' * max_sts + "\n")  # transfer pass A
+                    w('0' * max_sts + "\n")  # transfer pass B
         w("\nYARN PALETTE\nYarn L : 112,180,249 light blue\n")
         w("\nSTITCH SYMBOLS\n")
-        for runs in sts_row:
-            w(render_symbols(runs) + "\n")
+        if not garter_mode:
+            for runs in sts_row:
+                w(render_symbols(runs) + "\n")
+        else:
+            ARROW_UP = '↑'
+            ARROW_DOWN = '↓'
+            KNIT_F = '-'
+            KNIT_R = '.'
+            MISS = ' '
+
+            for row_idx, runs in enumerate(sts_row):
+                symbol_line_raw = render_symbols(runs)  # '-' where stitch, space elsewhere
+
+                # a) Knit row on appropriate bed
+                knit_sym = KNIT_F if row_idx % 2 == 0 else KNIT_R
+                knit_line = ''.join(
+                    knit_sym if ch != MISS else MISS for ch in symbol_line_raw)
+                w(knit_line + "\n")
+
+                if add_transfers:
+                    # Precompute arrow for this pair of transfer rows
+                    arrow_sym = ARROW_UP if row_idx % 2 == 0 else ARROW_DOWN
+                    width = len(knit_line)
+
+                    # b) Transfer pass A – even needles
+                    pass_a = ''.join(
+                        arrow_sym if (n % 2 == 0 and knit_line[n] != MISS) else MISS
+                        for n in range(width))
+                    w(pass_a + "\n")
+
+                    # c) Transfer pass B – odd needles
+                    pass_b = ''.join(
+                        arrow_sym if (n % 2 == 1 and knit_line[n] != MISS) else MISS
+                        for n in range(width))
+                    w(pass_b + "\n")
         w("\nSTITCH PATTERN NOTES\nSHAPE FILE NOTES\nEND\n")
 
 # ---------------------------------------------------------------------------
@@ -375,7 +429,8 @@ def polygon_to_svg(poly, path: str, stroke='none', fill='black', stroke_width=0)
 
 def convert_one(dxf_path: str, out_dir: str, sts10: float, rows10: float,
                 wanted_layers=None, unit_scale: float=1.0,
-                piece_index: int=1, rotation: float=0.0, mirror: str="none"):
+                piece_index: int=1, rotation: float=0.0, mirror: str="none",
+                garter_mode: bool=False, add_transfers: bool=False):
     """Convert a single named shape (by index) from DXF to DAK txt."""
     shapes = list_shapes(dxf_path, wanted_layers, unit_scale)
     if not shapes or piece_index < 1 or piece_index > len(shapes):
@@ -409,7 +464,8 @@ def convert_one(dxf_path: str, out_dir: str, sts10: float, rows10: float,
     fname = name.replace(" ", "_")
     txt_path = Path(out_dir) / f"{piece_index}_{fname}.txt"
     counts = list(row_stitch_counts(poly, sts10, rows10))
-    _write_shape(txt_path, name, fname, counts, sts10, rows10)
+    _write_shape(txt_path, name, fname, counts, sts10, rows10,
+                 garter_mode=garter_mode, add_transfers=add_transfers)
     return [str(txt_path)]
 
 # ---------------------------------------------------------------------------
